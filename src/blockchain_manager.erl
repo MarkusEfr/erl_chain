@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 
 -export([start_link/0]).
--export([start/0, stop/0, status/0, get_chain/0]).
+-export([start/0, stop/0, status/0, add_block/1, get_chain/0, init_chain/1, valid_chain/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 %% API
@@ -33,10 +33,28 @@ status() ->
         _Pid -> running
     end.
 
+add_block(Data) ->
+    case whereis(blockchain) of
+        undefined -> {error, not_running};
+        _Pid -> blockchain:add_block(Data)
+    end.
+
 get_chain() ->
     case whereis(blockchain) of
         undefined -> {error, not_running};
         _Pid -> blockchain:get_chain()
+    end.
+
+init_chain(GenesisData) ->
+    case whereis(blockchain) of
+        undefined -> {error, not_running};
+        _Pid -> blockchain:init_chain(GenesisData)
+    end.
+
+valid_chain() ->
+    case whereis(blockchain) of
+        undefined -> {error, not_running};
+        _Pid -> blockchain:valid_chain()
     end.
 
 %% gen_server callbacks
