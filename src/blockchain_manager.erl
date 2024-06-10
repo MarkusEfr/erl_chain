@@ -1,4 +1,11 @@
 %% src/blockchain_manager.erl
+
+% blockchain_manager:start().
+% blockchain_manager:init_chain("Genesis Block").
+% blockchain_manager:add_block("First block after genesis").
+% blockchain_manager:get_chain().
+% blockchain_manager:valid_chain().
+
 -module(blockchain_manager).
 -behaviour(gen_server).
 
