@@ -1,0 +1,12 @@
+{application, erl_chain,
+ [
+  {description, "An OTP application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {erl_chain_app, []}},
+  {applications, [kernel, stdlib]},
+  {env, []},
+  {modules, [erl_chain_app, erl_chain_sup, blockchain, block, blockchain_manager]},
+  {licenses, ["Apache-2.0"]},
+  {links, []}
+ ]}.
