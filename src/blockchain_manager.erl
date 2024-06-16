@@ -19,7 +19,7 @@ start_link() ->
 
 start() ->
     case whereis(blockchain) of
-        undefined -> 
+        undefined ->
             {ok, Pid} = blockchain:start_link(),
             {started, Pid};
         Pid when is_pid(Pid) ->
@@ -28,8 +28,9 @@ start() ->
 
 stop() ->
     case whereis(blockchain) of
-        undefined -> {error, not_running};
-        Pid when is_pid(Pid) -> 
+        undefined ->
+            {error, not_running};
+        Pid when is_pid(Pid) ->
             gen_server:stop(blockchain),
             ok
     end.
@@ -41,35 +42,43 @@ status() ->
     end.
 
 add_block(Data) ->
-    case whereis(blockchain) of
-        undefined -> {error, not_running};
-        _Pid -> blockchain:add_block(Data)
-    end.
+    gen_server:call(?MODULE, {add_block, Data}).
 
 get_chain() ->
-    case whereis(blockchain) of
-        undefined -> {error, not_running};
-        _Pid -> blockchain:get_chain()
-    end.
+    gen_server:call(?MODULE, get_chain).
 
 init_chain(GenesisData) ->
-    case whereis(blockchain) of
-        undefined -> {error, not_running};
-        _Pid -> blockchain:init_chain(GenesisData)
-    end.
+    gen_server:call(?MODULE, {init_chain, GenesisData}).
 
 valid_chain() ->
-    case whereis(blockchain) of
-        undefined -> {error, not_running};
-        _Pid -> blockchain:valid_chain()
-    end.
+    gen_server:call(?MODULE, valid_chain).
 
 %% gen_server callbacks
 init([]) ->
-    {ok, []}.
+    {ok, undefined}.
 
+handle_call({add_block, Data}, _From, State) ->
+    case whereis(blockchain) of
+        undefined -> {reply, {error, not_running}, State};
+        _Pid -> {reply, blockchain:add_block(Data), State}
+    end;
+handle_call(get_chain, _From, State) ->
+    case whereis(blockchain) of
+        undefined -> {reply, {error, not_running}, State};
+        _Pid -> {reply, blockchain:get_chain(), State}
+    end;
+handle_call({init_chain, GenesisData}, _From, State) ->
+    case whereis(blockchain) of
+        undefined -> {reply, {error, not_running}, State};
+        _Pid -> {reply, blockchain:init_chain(GenesisData), State}
+    end;
+handle_call(valid_chain, _From, State) ->
+    case whereis(blockchain) of
+        undefined -> {reply, {error, not_running}, State};
+        _Pid -> {reply, blockchain:valid_chain(), State}
+    end;
 handle_call(_Request, _From, State) ->
-    {reply, ok, State}.
+    {reply, {error, unknown_request}, State}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.

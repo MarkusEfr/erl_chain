@@ -27,20 +27,17 @@ init([]) ->
     {ok, []}.
 
 handle_call({init_chain, GenesisData}, _From, _State) ->
-    GenesisBlock = block:new(<<>>, GenesisData),
+    GenesisBlock = block:new(0, <<>>, GenesisData),
     {reply, ok, [GenesisBlock]};
-
 handle_call({add_block, Data}, _From, [LastBlock | _] = Chain) ->
-    NewBlock = block:new(LastBlock#block.hash, Data),
+    Index = LastBlock#block.index + 1,
+    NewBlock = block:new(Index, LastBlock#block.hash, Data),
     UpdatedChain = [NewBlock | Chain],
     {reply, ok, UpdatedChain};
-
 handle_call(valid_chain, _From, Chain) ->
-    {reply, is_valid_chain(Chain), Chain};
-
+    {reply, is_valid_chain(lists:reverse(Chain)), Chain};
 handle_call(get_chain, _From, Chain) ->
     {reply, lists:reverse(Chain), Chain};
-
 handle_call(_Request, _From, State) ->
     {reply, {error, unknown_request}, State}.
 
