@@ -3,6 +3,6 @@
     index,
     previous_hash,
     timestamp,
-    data,
+    transactions,
     hash
 }).

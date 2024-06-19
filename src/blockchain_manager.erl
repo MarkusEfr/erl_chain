@@ -2,7 +2,7 @@
 
 % blockchain_manager:start().
 % blockchain_manager:init_chain("Genesis Block").
-% blockchain_manager:add_block("First block after genesis").
+% blockchain_manager:add_block([transaction:new("A", "B", 10)]).
 % blockchain_manager:get_chain().
 % blockchain_manager:valid_chain().
 
@@ -41,8 +41,8 @@ status() ->
         _Pid -> running
     end.
 
-add_block(Data) ->
-    gen_server:call(?MODULE, {add_block, Data}).
+add_block(Transactions) ->
+    gen_server:call(?MODULE, {add_block, Transactions}).
 
 get_chain() ->
     gen_server:call(?MODULE, get_chain).
@@ -57,10 +57,10 @@ valid_chain() ->
 init([]) ->
     {ok, undefined}.
 
-handle_call({add_block, Data}, _From, State) ->
+handle_call({add_block, Transactions}, _From, State) ->
     case whereis(blockchain) of
         undefined -> {reply, {error, not_running}, State};
-        _Pid -> {reply, blockchain:add_block(Data), State}
+        _Pid -> {reply, blockchain:add_block(Transactions), State}
     end;
 handle_call(get_chain, _From, State) ->
     case whereis(blockchain) of
