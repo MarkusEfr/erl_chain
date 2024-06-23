@@ -6,7 +6,8 @@
     from,
     to,
     amount,
-    timestamp
+    timestamp,
+    signature
 }).
 
 new(From, To, Amount) ->
@@ -15,9 +16,10 @@ new(From, To, Amount) ->
         from = From,
         to = To,
         amount = Amount,
-        timestamp = Timestamp
+        timestamp = Timestamp,
+        signature = undefined
     }.
 
 is_valid(_Transaction) ->
-    %% Add validation logic here
+    %% Add more rigorous validation logic here
     true.

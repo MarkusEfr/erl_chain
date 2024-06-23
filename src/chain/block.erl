@@ -1,6 +1,6 @@
-%% src/block.erl
 -module(block).
 -include("block.hrl").
+
 -export([new/3, hash/1, is_valid/2]).
 
 new(Index, PreviousHash, Transactions) ->
