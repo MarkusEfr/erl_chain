@@ -3,5 +3,6 @@
     from,
     to,
     amount,
+    fee,
     timestamp
 }).

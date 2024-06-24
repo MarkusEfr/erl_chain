@@ -28,15 +28,6 @@ hash(Block) ->
     ).
 
 is_valid(Block, PreviousBlock) ->
-    io:format("Validating block ~p with previous block ~p~n", [Block, PreviousBlock]),
-    io:format("Block index: ~p, PreviousBlock index: ~p~n", [
-        Block#block.index, PreviousBlock#block.index
-    ]),
-    io:format("Block previous hash: ~p, PreviousBlock hash: ~p~n", [
-        Block#block.previous_hash, PreviousBlock#block.hash
-    ]),
-    io:format("Block hash: ~p, Calculated hash: ~p~n", [Block#block.hash, hash(Block)]),
-
     %% Check if the block's index is incremented correctly
     Block#block.index == PreviousBlock#block.index + 1 andalso
         %% Check if the previous hash matches

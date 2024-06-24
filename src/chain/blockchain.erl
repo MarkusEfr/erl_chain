@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 
 -include("block.hrl").
-
+-include("transaction.hrl").
 -record(state, {chain = []}).
 
 -export([start_link/0, add_block/1, get_chain/0, init_chain/1, valid_chain/0]).
@@ -37,8 +37,15 @@ handle_call({add_block, Transactions}, _From, State) ->
         Chain ->
             case create_block(Chain, Transactions) of
                 {ok, NewBlock} ->
-                    NewChain = [NewBlock | Chain],
-                    {reply, ok, State#state{chain = NewChain}};
+                    {ok, Proof} = pzk_consensus:generate_proof(NewBlock),
+                    case pzk_consensus:verify_proof(NewBlock, Proof) of
+                        true ->
+                            lists:foreach(fun update_balances/1, Transactions),
+                            NewChain = [NewBlock | Chain],
+                            {reply, ok, State#state{chain = NewChain}};
+                        false ->
+                            {reply, {error, invalid_proof}, State}
+                    end;
                 {error, Reason} ->
                     {reply, {error, Reason}, State}
             end
@@ -78,7 +85,7 @@ create_genesis_block(_Data) ->
         previous_hash = <<>>,
         timestamp = erlang:monotonic_time(),
         transactions = [
-            {transaction, <<"genesis">>, <<"genesis">>, 0, erlang:monotonic_time(), undefined}
+            {transaction, <<"genesis">>, <<"genesis">>, 0, 0, erlang:monotonic_time(), undefined}
         ],
         hash = <<>>
     },
@@ -115,3 +122,7 @@ validate_blocks(PreviousBlock, [CurrentBlock | Rest]) ->
         true -> validate_blocks(CurrentBlock, Rest);
         false -> false
     end.
+
+update_balances(#transaction{from = Sender, to = Recipient, amount = Amount, fee = Fee}) ->
+    wallet_manager:update_balance(Sender, -(Amount + Fee)),
+    wallet_manager:update_balance(Recipient, Amount).
