@@ -1,7 +1,8 @@
 -module(wallet).
 -export([create_wallet/0, update_balance/2, create_transaction/4]).
 
--include("wallet.hrl").
+-include("../include/wallet.hrl").
+-include("../include/transaction.hrl").
 
 % Create a new wallet with ECDSA keys
 create_wallet() ->
@@ -22,7 +23,14 @@ create_transaction(
             PrivateKey, secp256k1
         ]
     ),
-    {transaction, SenderPublicKey, RecipientPublicKey, Amount, Fee, Signature}.
+    #transaction{
+        from = SenderPublicKey,
+        to = RecipientPublicKey,
+        amount = Amount,
+        fee = Fee,
+        timestamp = erlang:system_time(),
+        signature = Signature
+    }.
 
 % Generate ECDSA keys
 generate_keys() ->

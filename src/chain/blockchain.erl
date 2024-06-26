@@ -1,8 +1,8 @@
 -module(blockchain).
 -behaviour(gen_server).
 
--include("block.hrl").
--include("transaction.hrl").
+-include("../include/block.hrl").
+-include("../include/transaction.hrl").
 -record(state, {chain = []}).
 
 -export([start_link/0, add_block/1, get_chain/0, init_chain/1, valid_chain/0]).

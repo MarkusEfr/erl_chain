@@ -1,10 +1,18 @@
 -module(blockchain_manager).
 -behaviour(gen_server).
 
--record(state, {chain = []}).
+-record(state, {chain = [], transaction_pool_pid = undefined}).
 
 -export([
-    start_link/0, start/0, stop/0, status/0, add_block/1, get_chain/0, init_chain/1, valid_chain/0
+    start_link/0,
+    start/0,
+    stop/0,
+    status/0,
+    add_block/1,
+    get_chain/0,
+    init_chain/1,
+    valid_chain/0,
+    generate_block/1
 ]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -51,12 +59,15 @@ init_chain(GenesisData) ->
 valid_chain() ->
     gen_server:call(blockchain_manager, valid_chain).
 
+generate_block(Transactions) ->
+    gen_server:cast(blockchain_manager, {generate_block, Transactions}).
+
 %% gen_server callbacks
 
 init([]) ->
-    % Start the blockchain process
-    {ok, _} = blockchain:start_link(),
-    {ok, #state{}}.
+    %% Get transaction_pool
+    TransactionPoolPid = whereis(transaction_pool),
+    {ok, #state{transaction_pool_pid = TransactionPoolPid}}.
 
 handle_call({add_block, Transactions}, _From, State) ->
     case blockchain:add_block(Transactions) of
@@ -81,6 +92,17 @@ handle_call(valid_chain, _From, State) ->
 handle_call(_Request, _From, State) ->
     {reply, {error, unknown_request}, State}.
 
+handle_cast({generate_block, Transactions}, State) ->
+    %% Trigger block generation
+    case blockchain:add_block(Transactions) of
+        ok ->
+            %% Remove transactions from the pool
+            transaction_pool:remove_transactions(Transactions),
+            {noreply, State};
+        {error, _Reason} ->
+            %% Handle error
+            {noreply, State}
+    end;
 handle_cast(_Msg, State) ->
     {noreply, State}.
 

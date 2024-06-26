@@ -30,6 +30,22 @@ init([]) ->
             shutdown => 5000,
             type => worker,
             modules => [wallet_manager]
+        },
+        #{
+            id => blockchain,
+            start => {blockchain, start_link, []},
+            restart => permanent,
+            shutdown => 5000,
+            type => worker,
+            modules => [blockchain]
+        },
+        #{
+            id => transaction_pool,
+            start => {transaction_pool, start_link, []},
+            restart => permanent,
+            shutdown => 5000,
+            type => worker,
+            modules => [transaction_pool]
         }
     ],
     {ok, {SupFlags, ChildSpecs}}.

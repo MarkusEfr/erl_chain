@@ -1,4 +1,3 @@
-%% src/transaction_pool.erl
 -module(transaction_pool).
 -behaviour(gen_server).
 
@@ -7,9 +6,9 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(state, {
-    transactions = []
-}).
+-record(state, {transactions = []}).
+
+-define(TRANSACTION_THRESHOLD, 10).
 
 %% API
 
@@ -31,7 +30,17 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({add_transaction, Transaction}, _From, State) ->
-    {reply, ok, State#state{transactions = [Transaction | State#state.transactions]}};
+    NewTransactions = [Transaction | State#state.transactions],
+    %% Check if threshold is met
+    if
+        length(NewTransactions) >= ?TRANSACTION_THRESHOLD ->
+            %% Trigger block generation
+            blockchain_manager:generate_block(NewTransactions),
+            %% Update state after generating block
+            {reply, ok, State#state{transactions = []}};
+        true ->
+            {reply, ok, State#state{transactions = NewTransactions}}
+    end;
 handle_call(get_transactions, _From, State) ->
     {reply, State#state.transactions, State}.
 
